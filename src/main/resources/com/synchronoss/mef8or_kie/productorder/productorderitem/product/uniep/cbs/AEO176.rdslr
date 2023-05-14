@@ -1,0 +1,46 @@
+package com.synchronoss.mef8or_kie.productorder.productorderitem.product.uniep.cbs;
+import java.util.*;
+import com.synchronoss.ruleserver.core.xpath.XOMContainerBean;
+import com.synchronoss.ruleserver.core.xpath.XOMAccessBean;
+import com.synchronoss.brms.dresclasses.xpath.XPathProcessor;
+import com.synchronoss.brms.dresclasses.xpath.Occurence;
+import com.synchronoss.brms.dresclasses.Populated;
+import com.synchronoss.brms.dresclasses.Equals;
+import com.synchronoss.brms.dresclasses.Contains;
+import com.synchronoss.brms.dresclasses.DatatypeCheck;
+import com.synchronoss.brms.dresclasses.SpaceCheck;
+import com.synchronoss.brms.dresclasses.LengthCheck;
+import com.synchronoss.brms.dresclasses.Position;
+import com.synchronoss.brms.dresclasses.TNFormat;
+import com.synchronoss.brms.dresclasses.RangeOfValues;
+import com.synchronoss.brms.dresclasses.DateCheck;
+import com.synchronoss.brms.dresclasses.Prohibited;
+import com.synchronoss.brms.dresclasses.DateFormatCheck;
+import com.synchronoss.brms.dresclasses.Required;
+import com.synchronoss.brms.dresclasses.CapitalLetterCheck;
+import com.synchronoss.brms.dresclasses.TimeFormatCheck;
+import com.synchronoss.brms.dresclasses.SpecialFormat;
+import com.synchronoss.brms.dresclasses.dao.SupplementOrderCheck;
+rule "AEO176" dialect "mvel" ruleflow-group "ACCESS_ELINE"
+
+	 when
+       
+        xcb object
+		Evaluate
+Start Brace
+
+Start Brace
+Rule "AEO176" multiple times_the "cir/irValue" in "//uniEp/ingressBandwidthProfilePerClassOfServiceName[i]/bwpFlow[i]" is float value greater than "0"
+        
+OR
+ Rule "AEO176" multiple times_the "cirMax/irValue" in "//uniEp/ingressBandwidthProfilePerClassOfServiceName[i]/bwpFlow[i]" is float value greater than "0"
+End Brace
+
+		
+AND
+ Rule "AEO176" multiple times_the "cbs/dataSizeValue" in "//uniEp/ingressBandwidthProfilePerClassOfServiceName[i]/bwpFlow[i]" is not greater than "0"
+End Brace
+
+	then
+		the rule "AEO176" with error code "MEFAEO0030" with message "If cir and/or cirmax are greater than 0, cbs must be greater than 0" for the field "cbs/dataSizeValue" of section "//productOrder/productOrderItem/product/productConfiguration/uniEp/ingressBandwidthProfilePerClassOfServiceName[i]/bwpFlow[i]"
+end

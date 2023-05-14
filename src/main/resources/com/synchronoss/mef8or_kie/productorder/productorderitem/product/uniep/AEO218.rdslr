@@ -1,0 +1,42 @@
+package com.synchronoss.mef8or_kie.productorder.productorderitem.product.uniep;
+import java.util.*;
+import com.synchronoss.ruleserver.core.xpath.XOMContainerBean;
+import com.synchronoss.ruleserver.core.xpath.XOMAccessBean;
+import com.synchronoss.brms.dresclasses.xpath.XPathProcessor;
+import com.synchronoss.brms.dresclasses.xpath.Occurence;
+import com.synchronoss.brms.dresclasses.Populated;
+import com.synchronoss.brms.dresclasses.Equals;
+import com.synchronoss.brms.dresclasses.Contains;
+import com.synchronoss.brms.dresclasses.DatatypeCheck;
+import com.synchronoss.brms.dresclasses.SpaceCheck;
+import com.synchronoss.brms.dresclasses.LengthCheck;
+import com.synchronoss.brms.dresclasses.Position;
+import com.synchronoss.brms.dresclasses.TNFormat;
+import com.synchronoss.brms.dresclasses.RangeOfValues;
+import com.synchronoss.brms.dresclasses.DateCheck;
+import com.synchronoss.brms.dresclasses.Prohibited;
+import com.synchronoss.brms.dresclasses.DateFormatCheck;
+import com.synchronoss.brms.dresclasses.Required;
+import com.synchronoss.brms.dresclasses.CapitalLetterCheck;
+import com.synchronoss.brms.dresclasses.TimeFormatCheck;
+import com.synchronoss.brms.dresclasses.SpecialFormat;
+import com.synchronoss.brms.dresclasses.dao.SupplementOrderCheck;
+rule "AEO218" dialect "mvel" ruleflow-group "ACCESS_ELINE"
+
+	 when
+       
+        xcb object
+		Evaluate
+Start Brace
+Rule "AEO218" multiple times "start" in "//uniEp/ovcEndPointPortConversationToAggregationLinkMap[i]/conversationIDs[i]" is populated
+		
+AND
+ Rule "AEO218" multiple times "end" in "//uniEp/ovcEndPointPortConversationToAggregationLinkMap[i]/conversationIDs[i]" is populated
+		
+AND
+ Rule "AEO218" multiple times "start" in "//uniEp/ovcEndPointPortConversationToAggregationLinkMap[i]/conversationIDs[i]" greater "end" in "//uniEp/ovcEndPointPortConversationToAggregationLinkMap[i]/conversationIDs[i]"
+End Brace
+
+	then
+		the rule "AEO218" with error code "MEFAEO0028" with message "End Conversation ID should not be less than the Start Conversation ID" for the field "end" of section "//productOrder/productOrderItem/product/productConfiguration/uniEp/ovcEndPointPortConversationToAggregationLinkMap[i]/conversationIDs[i]"
+end

@@ -1,0 +1,1542 @@
+//created on: Jul 23, 2021
+package com.synchronoss.mef8or_kie.productorder.productorderitem.cbs;
+
+import java.util.*;
+import com.synchronoss.brms.dresclasses.Equals;
+import com.synchronoss.ruleserver.core.xpath.XOMContainerBean;
+import com.synchronoss.ruleserver.core.xpath.XOMAccessBean;
+import com.synchronoss.brms.dresclasses.xpath.XPathProcessor;
+import com.synchronoss.brms.dresclasses.DatatypeCheck;
+import com.synchronoss.brms.dresclasses.xpath.Occurence;
+import com.synchronoss.brms.dresclasses.Populated;
+import com.synchronoss.brms.dresclasses.SpaceCheck;
+import com.synchronoss.brms.dresclasses.Position;
+import com.synchronoss.brms.dresclasses.TNFormat;
+import com.synchronoss.brms.dresclasses.RangeOfValues;
+import com.synchronoss.brms.dresclasses.Contains;
+import com.synchronoss.brms.dresclasses.LengthCheck;
+import com.synchronoss.brms.dresclasses.dao.HolidayCheck;
+import com.synchronoss.brms.dresclasses.Prohibited;
+import com.synchronoss.brms.dresclasses.DateFormatCheck;
+import com.synchronoss.brms.dresclasses.Required;
+import com.synchronoss.brms.dresclasses.CapitalLetterCheck;
+import com.synchronoss.brms.dresclasses.TimeFormatCheck;
+import com.synchronoss.brms.dresclasses.SpecialFormat;
+import com.synchronoss.brms.dresclasses.dao.SupplementOrderCheck;
+//import com.synchronoss.brms.dresclasses.dao.isDateFallsOnWeekend;
+import com.synchronoss.brms.dresclasses.DateCheck;
+//import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
+expander MEFORDSL_KIE.dsl
+
+
+
+
+//declare any global variables here
+//@@@@@@@@ Function sets @@@@@@@@@@@@@@@@@@@//
+function boolean getGreaterSumValue(XOMContainerBean xcb, String ruleid, String field,String section, String field2,  String section22,String field3,  String section33)
+    {
+       
+    	ArrayList errorListIndex = new ArrayList();
+    	ArrayList errorListIndexTemp1 = new ArrayList();
+    	ArrayList errorListIndexTemp2 = new ArrayList();
+    	boolean finalFlag = false;
+		if(section.contains("[i]/"))
+    	{
+    		String section1=null;
+    		String section2=null;
+    		String section12=null;
+    		int pos1,pos2;
+    		pos1=section.indexOf("[i]/");
+    		pos2=section.lastIndexOf("[i]");
+    		section1=section.substring(0,pos1);
+    		section2=section.substring(pos1+4,pos2);
+			section22=section22.replace("[i]", "");
+		    section33=section33.replace("[i]", "");
+    		XOMAccessBean accessBean1 = xcb.xpath(section1);
+    		XOMContainerBean[] arr1;
+    		arr1 = accessBean1.nodeSet();
+    		XOMAccessBean accessBean2 =null;
+    		for (int i = 0; i < arr1.length; i++)
+    		{
+    			section12=section1 + "[" + (i + 1) + "]/" + section2;
+    			accessBean2 = xcb.xpath(section12);
+    			XOMContainerBean[] arr2;
+    			arr2 = accessBean2.nodeSet();
+    			for(int j = 0; j < arr2.length; j++)
+    			{
+    				boolean flag = false;
+    				XOMContainerBean xBean = arr2[j];
+
+    				String xpath1 = section12 + "[" + (j + 1) + "]/" + field;
+					String xpath2 = section22 + "[" + (i + 1) + "]/" + field2;
+			        String xpath3 = section33 + "[" + (i + 1) + "]/" + field3;
+					int content = getSumValue(xcb,xpath2,xpath3);
+    				int comparevalue=xBean.xpath(xpath1).integerValue();
+                    if(comparevalue>=content)
+			        {
+			        flag=true;
+			        }
+    				if (flag)
+    				{
+    					ArrayList temp=new ArrayList();
+    					temp.add(i+1);
+    					temp.add(j+1);
+    					errorListIndex.add(temp);
+    					finalFlag = true;
+    				}
+    			}
+    			accessBean2 =null;
+			}
+		}
+	errorListIndexTemp1=(ArrayList)((xcb.getErrorListIndexMap()).get(ruleid));
+
+	errorListIndexTemp2=(ArrayList)errorListIndex.clone();
+
+	if(errorListIndexTemp1!=null)
+	{
+		if(errorListIndexTemp1.isEmpty())
+		{
+			errorListIndex=(ArrayList)errorListIndexTemp1.clone();
+		}
+		else
+		{
+			ArrayList errorListIndexTemp3 = new ArrayList();
+			for(int i = 0;i < errorListIndexTemp1.size();i++){
+				for(int j = 0;j < errorListIndexTemp2.size();j++){
+					if(errorListIndexTemp1.get(i).equals(errorListIndexTemp2.get(j))){
+						errorListIndexTemp3.add(errorListIndexTemp1.get(i));
+
+					}
+				}
+					errorListIndex=(ArrayList)errorListIndexTemp3.clone();
+			}
+		}
+	}
+
+	if (finalFlag)
+	{
+		(xcb.getErrorListIndexMap()).put(ruleid,errorListIndex);
+	}
+	return finalFlag;
+    }
+function int getSumValue(XOMContainerBean xcb, String field2, String field3) {
+    
+    
+	int field2Int=(xcb.xpath(field2).integerValue());
+	int field3Int=0;
+	String field3Str=(xcb.xpath(field3).stringValue());
+
+	switch(field3Str)
+        {
+            case "DAY":
+                field3Int=86400;
+                break;
+            case "WEEK":
+                field3Int=86400*7;
+                break;
+            case "MONTH":
+                field3Int=86400*30;
+                break;
+			      case "YEAR":
+                field3Int=86400*365;
+                break;
+            default:
+        }
+	return field2Int * field3Int;
+  }
+function boolean isGreaterThanSumValue(XOMContainerBean xcb,String field1, String field2,String field3) {
+
+	int field1Int=(xcb.xpath(field1).integerValue());
+	int field2Int=(xcb.xpath(field2).integerValue());
+	int field3Int=0;
+	String field3Str=(xcb.xpath(field3).stringValue());
+
+	switch(field3Str)
+        {
+            case "DAY":
+                field3Int=86400;
+                break;
+            case "WEEK":
+                field3Int=604800;
+                break;
+            case "MONTH":
+                field3Int=2592000;
+                break;
+			      case "YEAR":
+                field3Int=31536000;
+                break;
+            default:
+        }
+	if (field1Int >= (field2Int + field3Int))
+      return true;
+	return false;
+  }
+  function boolean isNotGreaterThanOrEqualToTwice(int field1, int field2)
+{
+
+	try{
+            
+		if(field1<2*field2)
+		{
+		 return true;
+		}
+
+
+}
+ catch(Exception e)
+{
+	System.out.println("Exception:isNotGreaterThanOrEqualToTwice");
+}
+return false;
+}
+
+function boolean isTwoSectionAreEqual(XOMContainerBean xcb,String ruleID, String section, String section2)
+{
+		StringBuilder sb = new StringBuilder();
+		try{
+		    XOMAccessBean accessBean = xcb.xpath(section);
+        XOMContainerBean arr[] = accessBean.nodeSet();
+
+        int count=0;
+       for(int i = 0; i < arr.length; i++)
+       {
+        		String xpath = (new StringBuilder(String.valueOf(section))).append("[").append(i + 1).append("]").toString();
+        		if((new Populated()).isPopulated((xcb.xpath(xpath)).stringValue()))
+				    {
+					    String content = xcb.xpath(xpath).stringValue();
+					    sb.append(content).append(",");
+				    }
+       }
+	     XOMAccessBean accessBean2 = xcb.xpath(section2);
+       XOMContainerBean arr2[] = accessBean2.nodeSet();
+      	String sectionStr=sb.toString();
+          	for(int i = 0; i < arr2.length; i++)
+             {
+                    		String xpath = (new StringBuilder(String.valueOf(section2))).append("[").append(i + 1).append("]").toString();
+                    		if((new Populated()).isPopulated((xcb.xpath(xpath)).stringValue()))
+            				{
+            					String content = xcb.xpath(xpath).stringValue();
+            					if(sectionStr.contains(content+","))
+            					{
+            					  return true;
+            					}
+            				}
+            }
+             return false;
+  }
+ catch(Exception e)
+{ return false; }
+}
+
+function boolean isSectionContainField(XOMContainerBean xcb,String ruleID, String section, String section2,String field)
+{
+		StringBuilder sb = new StringBuilder();
+		try{
+		XOMAccessBean accessBean = xcb.xpath(section);
+        XOMContainerBean arr[] = accessBean.nodeSet();
+        int count=0;
+       for(int i = 0; i < arr.length; i++)
+        	{
+        		String xpath = (new StringBuilder(String.valueOf(section))).append("[").append(i + 1).append("]").toString();
+        		if((new Populated()).isPopulated((xcb.xpath(xpath)).stringValue()))
+				{
+					String content = xcb.xpath(xpath).stringValue();
+					sb.append(content).append(",");
+				}
+        	}
+	return compare(xcb, 3, ruleID, section2, field, sb.toString(),null,null,null);
+}
+ catch(Exception e)
+{ return false; }
+}
+function boolean datalessThenValue(XOMContainerBean xcb, String field1, String field2)
+{
+
+	try{
+	         int maximumServiceFrameSize=(xcb.xpath(field1).integerValue());
+		 int maximumFrameSize=(xcb.xpath(field2).integerValue());
+		if((maximumFrameSize - maximumServiceFrameSize) > 4)
+		{
+		 return true;
+		}
+
+
+}
+ catch(Exception e)
+{
+	System.out.println("Exception:dataSizeValueNotGreaterEqualToTwice");
+}
+return false;
+}
+
+function boolean dataSizeValueNotGreaterEqualToTwice(XOMContainerBean xcb, String field1, String field2)
+{
+
+	try{
+	         int dataSizeValue=(xcb.xpath(field1).integerValue());
+		 int maximumFrameSize=(xcb.xpath(field2).integerValue());
+		if(dataSizeValue<2*maximumFrameSize)
+		{
+		 return true;
+		}
+
+
+}
+ catch(Exception e)
+{
+	System.out.println("Exception:dataSizeValueNotGreaterEqualToTwice");
+}
+return false;
+}
+function boolean MultiRules(int compareType, String xpath, String content, String parameter, String val2, String position1, String position2)
+    {
+     boolean flag=false;
+
+     switch (compareType)
+	    {
+	    case 1:
+		if((parameter != null) && ((new Equals()).isEqualToValues(content,parameter)))
+		{
+		    // log.debug("EQUALS");
+		    flag = true;
+		}
+		break;
+	    case 2:
+		if ((parameter != null) && (!((new LengthCheck()).checkMaximumlength(content,Integer.parseInt(parameter)))))
+		{
+		    // log.debug("LENGTH IS GREATER");
+		    flag = true;
+		}
+		break;
+	    case 3:
+	    	if((parameter == null) || (!(new Equals()).isEqualToValues(content,parameter)))
+		{
+		    // log.debug("CHARACTERS DOES NOT MATCH");
+		    flag = true;
+		}
+		break;
+	    case 4:if((new Populated()).isNotPopulated(content))
+		{
+		   // log.debug("FIELD NOT POPULATED");
+		    flag = true;
+		}
+		break;
+	    case 5:
+		if ((new Populated()).isPopulated(content))
+		{
+		   // log.debug("FIELD POPULATED");
+		    flag = true;
+		}
+		break;
+	    case 6:
+		if ((parameter != null) && (!((new DatatypeCheck()).checkAlphaSPSet(content,parameter))))
+		{
+			// log.debug("FIELD IS NOT ALPHA WITH SPECIAL CHARS");
+		    flag = true;
+		}
+		break;
+	    case 7:
+		if (!((new DatatypeCheck()).checkNumeric(content)))
+		{
+		    // log.debug("FIELD IS NOT NUMERIC");
+		    flag = true;
+		}
+		break;
+	    case 8:
+		if (!((new DatatypeCheck()).checkAlphaNumeric(content)))
+		{
+			    // log.debug("FIELD IS NOT ALPHANUMERIC");
+			  flag = true;
+		}
+		break;
+	    case 9:
+			if ((parameter != null) && (!((new LengthCheck()).checkLength(content,Integer.parseInt(parameter)))))
+			{
+				    // log.debug("FIELD LENGTH CHECK");
+				  flag = true;
+			}
+			break;
+	    case 10:
+	    	if ((parameter != null) && (!((new TNFormat()).tnFormatIs(content,parameter))))
+			{
+				    // log.debug("TELEPHONE NUM FORMAT");
+				  flag = true;
+			}
+			break;
+			case 11:
+			if (!((new DatatypeCheck()).checkAlpha(content)))
+			{
+				    // log.debug("FIELD IS NOT ALPHA");
+				  flag = true;
+			}
+			break;
+
+	    case 12:
+			if ((parameter != null) && (!((new DatatypeCheck()).checkAlphaNumericSPSet(content,parameter))))
+			{
+				// log.debug("FIELD IS ALLOW ALPHANUM WITH SPECIAL CHARS");
+			    flag = true;
+			}
+			break;
+	    case 13:
+			if ((parameter != null) && (((new LengthCheck()).checkLength(content,Integer.parseInt(parameter)))))
+			{
+				    // log.debug("FIELD LENGTH CHECK");
+				  flag = true;
+			}
+			break;
+	    case 14:
+			if ((new DatatypeCheck()).checkAlphaNumeric(content))
+			{
+				    // log.debug("FIELD IS ALPHANUMERIC");
+				  flag = true;
+			}
+			break;
+	    case 15:
+			if ((new DatatypeCheck()).checkNumeric(content))
+			{
+			    // log.debug("FIELD IS NOT NUMERIC");
+			    flag = true;
+			}
+			break;
+	    case 16:
+			if ((new DatatypeCheck()).checkAlpha(content))
+			{
+				    // log.debug("FIELD IS ALPHA");
+				  flag = true;
+			}
+			break;
+	    case 17:
+			if((parameter != null) && ((new Equals()).isGreaterThan(content,Integer.parseInt(parameter))))
+		    {
+			    // log.debug("GREATER THAN");
+			    flag = true;
+			}
+			break;
+	    case 18:
+	    	if((parameter != null) && ((new Contains()).characterNotPreceededAndFollowedByNumeric(content,parameter)))
+		    {
+			    // log.debug("NUMBERS WITH SPECIAL CHAR");
+			    flag = true;
+			}
+			break;
+	    case 19:
+	    	if((parameter != null) && ((new Contains()).contains(content,parameter)))
+		    {
+			    // log.debug("CONTAINS CHAR");
+			    flag = true;
+			}
+			break;
+	    case 20:
+	    	if((parameter != null) && (content!="") && (!((new Contains()).characterFollowedByAlpha(content,parameter))))
+		    {
+			    // log.debug("CONTAINS CHAR FOLLOWED BY ALPHA");
+			    flag = true;
+			}
+			break;
+	    case 21:
+	    	if((parameter != null)&& (content!="") && ((new Contains()).characterPreceededAndFollowedByAlpha(content,parameter)))
+		    {
+			    // log.debug("CONTAINS CHAR PRECEEDED AND FOLLOWED BY ALPHA");
+			    flag = true;
+			}
+			break;
+	    case 22:
+	    	if((parameter != null)  && (content!="") && (!((new Contains()).characterPreceededAndFollowedByAlphaNumeric(content,parameter))))
+		    {
+			    // log.debug("CONTAINS CHAR PRECEEDED AND FOLLOWED BY ALPHANUM");
+			    flag = true;
+			}
+			break;
+	    case 23:
+	    	if((parameter != null) && (content!="") && (!((new Contains()).characterFollowedBySpace(content,parameter.charAt(0)))))
+		    {
+			    // log.debug("CONTAINS CHAR FOLLOWED BY SPACE");
+			    flag = true;
+			}
+			break;
+	    case 24:
+	    	if((new Contains()).checkSingleParanthesis(content))
+		    {
+			    // log.debug("CONTAINS SINGLE (");
+			    flag = true;
+			}
+			break;
+	    case 25:
+	    	if(!((new SpaceCheck()).isAmpersandprecspace(content)))
+		    {
+			    // log.debug("CONTAINS AMPERSAND AND SPACE");
+			    flag = true;
+			}
+			break;
+	    case 26:
+	    	if((new Contains()).doubleVirgleNotPreceededAndFollowedByAlphaNumeric(content))
+		    {
+			    // log.debug("CONTAINS VIRGLE NOT ALPHANUM ");
+			    flag = true;
+			}
+			break;
+	    case 27:
+	    		if(!((new Position()).positionOftagValueEqualToValues(Integer.parseInt(position1), content, parameter)))
+	    		{
+
+					flag = true;
+	    		}
+	    		break;
+		    case 28:
+				if(!((new RangeOfValues()).twoFieldPositionInRange(Integer.parseInt(position1), Integer.parseInt(position2), content, Integer.parseInt(parameter), Integer.parseInt(val2))))
+				{
+				    flag = true;
+				}
+				break;
+		    case 29:
+
+				if((new Position()).positionOftagValueEqualToValues(Integer.parseInt(position1), content, parameter))
+				{
+				    //System.out.println("Pos:"+Integer.parseInt(position1)+"\t Content:"+content+"\tvalue:"+parameter);
+					flag = true;
+				}
+				break;
+		    case 30:
+				if(!((new Position()).twoPositionValueofTagEqualToValues(Integer.parseInt(position1), Integer.parseInt(position2), content, parameter)))
+				{
+				    flag = true;
+				}
+				break;
+		    case 31:
+				if((new Position()).posToPosOfTagIsLessThanOrEqualToPosToPos(Integer.parseInt(position1), Integer.parseInt(position2), content, Integer.parseInt(parameter), Integer.parseInt(val2)))
+				{
+				    flag = true;
+				}
+				break;
+			case 32:
+			if ((parameter != null) && (!((new DatatypeCheck()).checkAlphaNumericWithOutSPSet(content,parameter))))
+			{
+				// log.debug("FIELD IS NOT ALPHANUM WITH SPECIAL CHARS");
+			    flag = true;
+			}
+			break;
+			case 33:
+			if ((parameter != null) && (((new Position()).positionOftagValueNotEqualToValue(Integer.parseInt(position1), content,parameter))))
+			{
+				flag = true;
+			}
+			break;
+			case 34:
+			if((parameter != null) && (!((new Equals()).isGreaterThan(content,Integer.parseInt(parameter)))))
+		    	{
+			    // log.debug("NOT GREATER THAN");
+			    flag = true;
+			}
+			break;
+			case 35:
+			if((parameter != null) && (isGreaterThanFloat(content,Float.parseFloat(parameter))))
+		    {
+			    // log.debug("GREATER THAN");
+			    flag = true;
+			}
+			break;
+		    case 36:
+			if((parameter != null) && (!(isGreaterThanFloat(content,Float.parseFloat(parameter)))))
+		    	{
+			    // log.debug("NOT GREATER THAN");
+			    flag = true;
+			}
+			break;
+            case 37:
+			if((parameter != null) && (isNotEqualOcc(Integer.parseInt(content),Integer.parseInt(parameter))))
+		    {
+			    // log.debug("IS NOT EQUAL OCCURENCE");
+			    flag = true;
+			}
+			break;
+			case 38:
+			if((parameter != null) && (isNotGreaterThanOrEqualToTwice(Integer.parseInt(content),Integer.parseInt(parameter))))
+		    {
+			    // log.debug("IS NOT EQUAL OCCURENCE");
+			    flag = true;
+			}
+			break;
+			case 39:	 
+	    	if((parameter != null) && (!((new Contains()).contains(content,parameter))))
+		    {
+			    // log.debug("CONTAINS CHAR");
+			    flag = true;
+			}
+			break;
+		    case 40:
+	    	if((parameter != null) && ((new Equals()).lastCharacterOfField(content,parameter.charAt(0))))
+		    {
+			    // log.debug("CONTAINS CHAR");
+			    flag = true;
+			}
+			break;
+
+	    default:
+
+    }
+
+ 	return flag;
+    }
+function boolean isNotGreaterThan(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 34, ruleid, section, field, valueToCompare,null,null,null);
+    }
+    function boolean compare(XOMContainerBean xcb,int compareType, String ruleid, String section, String field, String parameter, String val2, String position1, String position2)
+    {
+
+    	ArrayList errorListIndex = new ArrayList();
+    	ArrayList errorListIndexTemp1 = new ArrayList();
+    	ArrayList errorListIndexTemp2 = new ArrayList();
+    	int CT=compareType;
+    	String param=parameter;
+    	boolean finalFlag = false;
+    	if(section.contains("[i]/"))
+    	{
+    		String section1=null;
+    		String section2=null;
+    		String section12=null;
+    		int pos1,pos2;
+    		pos1=section.indexOf("[i]/");
+    		pos2=section.lastIndexOf("[i]");
+    		section1=section.substring(0,pos1);
+    		section2=section.substring(pos1+4,pos2);
+    		XOMAccessBean accessBean1 = xcb.xpath(section1);
+    		XOMContainerBean[] arr1;
+    		arr1 = accessBean1.nodeSet();
+    		XOMAccessBean accessBean2 =null;
+    		for (int i = 0; i < arr1.length; i++)
+    		{
+    			section12=section1 + "[" + (i + 1) + "]/" + section2;
+    			accessBean2 = xcb.xpath(section12);
+    			XOMContainerBean[] arr2;
+    			arr2 = accessBean2.nodeSet();
+    			for(int j = 0; j < arr2.length; j++)
+    			{
+    				boolean flag = false;
+    				XOMContainerBean xBean = arr2[j];
+
+    				String xpath = section12 + "[" + (j + 1) + "]/" + field;
+    				String content = xBean.xpath(xpath).stringValue();
+
+    				flag=MultiRules(CT,xpath,content,param,val2,position1,position2);
+
+
+    				if (flag)
+    				{
+    					ArrayList temp=new ArrayList();
+    					temp.add(i+1);
+    					temp.add(j+1);
+    					errorListIndex.add(temp);
+    					finalFlag = true;
+    				}
+    			}
+    			accessBean2 =null;
+			}
+		}
+	else
+	{
+		int pos1;
+		String section1=null;
+		section1=section.replace("[i]", "");
+		XOMAccessBean accessBean = xcb.xpath(section1);
+		XOMContainerBean[] arr;
+		arr = accessBean.nodeSet();
+		for (int i = 0; i < arr.length; i++)
+		{
+		    boolean flag = false;
+		    XOMContainerBean xBean = arr[i];
+
+		    String xpath = section1 + "[" + (i + 1) + "]/" + field;
+		    String content = xBean.xpath(xpath).stringValue();
+		    flag=MultiRules(CT,xpath,content,param,val2,position1,position2);
+
+		    if (flag)
+		    {
+			errorListIndex.add(i + 1);
+			finalFlag = true;
+		    }
+		}
+	}
+
+
+	errorListIndexTemp1=(ArrayList)((xcb.getErrorListIndexMap()).get(ruleid));
+
+	errorListIndexTemp2=(ArrayList)errorListIndex.clone();
+
+	if(errorListIndexTemp1!=null)
+	{
+		if(errorListIndexTemp1.isEmpty())
+		{
+			errorListIndex=(ArrayList)errorListIndexTemp1.clone();
+		}
+		else
+		{
+			ArrayList errorListIndexTemp3 = new ArrayList();
+			for(int i = 0;i < errorListIndexTemp1.size();i++){
+				for(int j = 0;j < errorListIndexTemp2.size();j++){
+					if(errorListIndexTemp1.get(i).equals(errorListIndexTemp2.get(j))){
+						errorListIndexTemp3.add(errorListIndexTemp1.get(i));
+
+					}
+				}
+					errorListIndex=(ArrayList)errorListIndexTemp3.clone();
+			}
+		}
+	}
+
+	if (finalFlag)
+	{
+		(xcb.getErrorListIndexMap()).put(ruleid,errorListIndex);
+	}
+	return finalFlag;
+    }
+        function boolean isGreaterThan(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 17, ruleid, section, field, valueToCompare,null,null,null);
+    }
+    function void logMultipleError(XOMContainerBean xcb,String ruleid, String section, String field, String errorCode, String errorMessage)
+    {
+
+	ArrayList errorListIndex = (ArrayList) (xcb.getErrorListIndexMap()).get(ruleid);
+	if (errorListIndex != null && errorListIndex.size() > 0)
+	{
+	    for (int i = 0; i < errorListIndex.size(); i++)
+	    {
+	    if(section.contains("[i]/"))
+	    {
+	    	ArrayList temp=new ArrayList();
+	    	temp=(ArrayList)errorListIndex.get(i);
+	    	String section1=null;
+			String section2=null;
+			String section12=null;
+			int pos1,pos2;
+			pos1=section.indexOf("[i]/");
+			pos2=section.lastIndexOf("[i]");
+			section1=section.substring(0,pos1);
+			section2=section.substring(pos1+4,pos2);
+			section12=section1 + "[" + temp.get(0) + "]/" + section2;
+			String xpath = section12 + "[" + temp.get(1) + "]/" + field;
+			xcb.logError(errorCode, errorMessage, xpath);
+	    }
+	    else
+	    {
+
+	    	int pos1;
+	    	String section1=null;
+	    	pos1=section.indexOf("[i]");
+			section1=section.substring(0,pos1);
+			String xpath = section1 + "[" + errorListIndex.get(i) + "]/" + field;
+	    	xcb.logError(errorCode, errorMessage, xpath);
+	    }
+	    }
+	}
+	(xcb.getErrorListIndexMap()).remove(ruleid);
+   }
+   function boolean isMultiSectionContainField(XOMContainerBean xcb,String ruleID, String sectionfield,String field)
+{
+		ArrayList al = new ArrayList();
+		try{
+		XOMAccessBean accessBean = xcb.xpath(sectionfield);
+        XOMContainerBean arr[] = accessBean.nodeSet();
+        int count=0;
+       for(int i = 0; i < arr.length; i++)
+        	{
+        		String xpath = (new StringBuilder(String.valueOf(sectionfield))).append("[").append(i + 1).append("]").toString();
+        		if((new Populated()).isPopulated((xcb.xpath(xpath)).stringValue()))
+				{
+					String content = xcb.xpath(xpath).stringValue();
+					al.add(content);
+				}
+        	}
+
+   if(!al.contains(field))
+   {
+     return true;
+   }
+   else
+   {
+   return false;
+   }
+}
+ catch(Exception e)
+{ return false; }
+}
+function boolean isListOfNumric(XOMContainerBean xcb, String sectionfield)
+{
+		ArrayList al = new ArrayList();
+		try{
+		XOMAccessBean accessBean = xcb.xpath(sectionfield);
+        XOMContainerBean arr[] = accessBean.nodeSet();
+        int count=0;
+       for(int i = 0; i < arr.length; i++)
+        	{
+        		String xpath = (new StringBuilder(String.valueOf(sectionfield))).append("[").append(i + 1).append("]").toString();
+        		if((new Populated()).isPopulated((xcb.xpath(xpath)).stringValue()))
+				{
+					String content = xcb.xpath(xpath).stringValue();
+					al.add(content);
+				}
+        	}
+
+   if(al.size()>1)
+   {
+     return false;
+   }
+   else
+   {
+   return true;
+   }
+}
+ catch(Exception e)
+{ return false; }
+}
+function boolean isGreaterThanFloat(String field, float value) {
+    float fieldValue = 0;
+    if (field != null) {
+      try {
+        fieldValue = Float.parseFloat(field);
+      } catch (NumberFormatException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    if (fieldValue > value)
+      return true;
+    return false;
+  }
+  function boolean multiCompare(XOMContainerBean xcb,String ruleid, String field, String section, String field2,  String sectionfield2, String tag)
+    {
+
+    	ArrayList errorListIndex = new ArrayList();
+    	ArrayList errorListIndexTemp1 = new ArrayList();
+    	ArrayList errorListIndexTemp2 = new ArrayList();
+    	    boolean finalFlag = false;
+    		String section1=null;
+    		String section2=null;
+    		String section12=null;
+    		int pos1,pos2;
+    		pos1=section.indexOf("[i]/");
+    		pos2=section.lastIndexOf("[i]");
+    		section1=section.substring(0,pos1);
+    		section2=section.substring(pos1+4,pos2);
+    		XOMAccessBean accessBean1 = xcb.xpath(section1);
+    		XOMContainerBean[] arr1;
+    		arr1 = accessBean1.nodeSet();
+    		XOMAccessBean accessBean2 =null;
+    		for (int i = 0; i < arr1.length; i++)
+    		{
+    			section12=section1 + "[" + (i + 1) + "]/" + section2;
+    			accessBean2 = xcb.xpath(section12);
+    			XOMContainerBean[] arr2;
+    			arr2 = accessBean2.nodeSet();
+    			for(int j = 0; j < arr2.length; j++)
+    			{
+    				boolean flag = false;
+    				XOMContainerBean xBean = arr2[j];
+
+    				String xpath = section12 + "[" + (j + 1) + "]/" + field;
+				String xpath2 = section12 + "[" + (j + 1) + "]/" + field2;
+    				int content = xBean.xpath(xpath).integerValue();
+					int content2 = xBean.xpath(xpath2).integerValue();
+					if(tag.equals("equal"))
+					{
+                    if(content==content2)
+					{
+					 flag=true;
+					}
+					else{
+					flag=false;
+					}
+					}
+					else if(tag.equals("greater"))
+					{
+					if(content>content2)
+					{
+					 flag=true;
+					}
+					else{
+					flag=false;
+					}
+					}
+
+    				if (flag)
+    				{
+    					ArrayList temp=new ArrayList();
+    					temp.add(i+1);
+    					temp.add(j+1);
+    					errorListIndex.add(temp);
+    					finalFlag = true;
+    				}
+    			}
+    			accessBean2 =null;
+			}
+
+	errorListIndexTemp1=(ArrayList)((xcb.getErrorListIndexMap()).get(ruleid));
+
+	errorListIndexTemp2=(ArrayList)errorListIndex.clone();
+
+	if(errorListIndexTemp1!=null)
+	{
+		if(errorListIndexTemp1.isEmpty())
+		{
+			errorListIndex=(ArrayList)errorListIndexTemp1.clone();
+		}
+		else
+		{
+			ArrayList errorListIndexTemp3 = new ArrayList();
+			for(int i = 0;i < errorListIndexTemp1.size();i++){
+				for(int j = 0;j < errorListIndexTemp2.size();j++){
+					if(errorListIndexTemp1.get(i).equals(errorListIndexTemp2.get(j))){
+						errorListIndexTemp3.add(errorListIndexTemp1.get(i));
+
+					}
+				}
+					errorListIndex=(ArrayList)errorListIndexTemp3.clone();
+			}
+		}
+	}
+
+	if (finalFlag)
+	{
+		(xcb.getErrorListIndexMap()).put(ruleid,errorListIndex);
+	}
+	return finalFlag;
+    }
+function boolean isNotUniqueList(XOMContainerBean xcb,String ruleID, String field,String section)
+{
+		try{
+		ArrayList al = new ArrayList();
+		HashSet hs=new HashSet();
+		String section1=null;
+		section1=section.replace("[i]", "");
+		XOMAccessBean accessBean = xcb.xpath(section1);
+		XOMContainerBean[] arr;
+		arr = accessBean.nodeSet();
+		for (int i = 0; i < arr.length; i++)
+		{
+		    boolean flag = false;
+		    XOMContainerBean xBean = arr[i];
+
+		    String xpath = section1 + "[" + (i + 1) + "]/" + field;
+			int content = xcb.xpath(xpath).integerValue();
+			al.add(content);
+			hs.add(content);
+
+		}
+   if(hs.size()<al.size())
+   {
+     return true;
+   }
+   else
+   {
+   return false;
+   }
+ }
+ catch(Exception e)
+{ return false; }
+}
+ function boolean isMultiSectionUniqueList(XOMContainerBean xcb,String ruleid,String field1,String section1,String field2,String section2)
+{
+		try{
+
+    	ArrayList errorListIndex = new ArrayList();
+    	ArrayList errorListIndexTemp1 = new ArrayList();
+    	ArrayList errorListIndexTemp2 = new ArrayList();
+		String section3=null;
+		String section4=null;
+		section3=section1.replace("[i]", "");
+		section4=section2.replace("[i]", "");
+		XOMAccessBean accessBean = xcb.xpath(section3);
+		XOMAccessBean accessBean1 = xcb.xpath(section4);
+		XOMContainerBean[] arr = accessBean.nodeSet();
+		XOMContainerBean[] brr = accessBean1.nodeSet();
+		boolean finalFlag = false;
+	abc:for (int i = 0; i < arr.length; i++)
+		{
+		for (int j = 0; j < brr.length; j++)
+		{
+		    boolean flag = false;
+		    XOMContainerBean xBean = arr[i];
+
+		    String xpath = section3 + "[" + (i + 1) + "]/" + field1;
+			String content = xcb.xpath(xpath).stringValue();
+			String xpath1 = section4 + "[" + (j + 1) + "]/" + field2;
+			String content1 = xcb.xpath(xpath1).stringValue();
+			if(content.equals(content1))
+			{
+			flag=true;
+			}
+			if (flag)
+		    {
+			errorListIndex.add(i + 1);
+			finalFlag = true;
+		    }
+
+
+		}
+		}
+	errorListIndexTemp1=(ArrayList)((xcb.getErrorListIndexMap()).get(ruleid));
+
+	errorListIndexTemp2=(ArrayList)errorListIndex.clone();
+
+	if(errorListIndexTemp1!=null)
+	{
+		if(errorListIndexTemp1.isEmpty())
+		{
+			errorListIndex=(ArrayList)errorListIndexTemp1.clone();
+		}
+		else
+		{
+			ArrayList errorListIndexTemp3 = new ArrayList();
+			for(int i = 0;i < errorListIndexTemp1.size();i++){
+				for(int j = 0;j < errorListIndexTemp2.size();j++){
+					if(errorListIndexTemp1.get(i).equals(errorListIndexTemp2.get(j))){
+						errorListIndexTemp3.add(errorListIndexTemp1.get(i));
+
+					}
+				}
+					errorListIndex=(ArrayList)errorListIndexTemp3.clone();
+			}
+		}
+	}
+
+	if (finalFlag)
+	{
+		(xcb.getErrorListIndexMap()).put(ruleid,errorListIndex);
+	}
+	return finalFlag;
+ }
+ catch(Exception e)
+{ return false; }
+}
+function boolean NumOccOfSecNotEqualCount(XOMContainerBean xcb, String section, int count)
+        {
+        		try{
+        		XOMAccessBean accessBean = xcb.xpath(section);
+                XOMContainerBean arr[] = accessBean.nodeSet();
+                int val=arr.length;
+                if(count == val )
+                	{
+                		return true;
+                	}
+                return false;
+        }
+         catch(Exception e)
+        { return false; }
+        }
+     function boolean NumOccOfSecGreaterThenCount(XOMContainerBean xcb, String section, int count)
+         {
+         		try{
+         		XOMAccessBean accessBean = xcb.xpath(section);
+                 XOMContainerBean arr[] = accessBean.nodeSet();
+                 int val=arr.length;
+                 if(count < val )
+                 	{
+                 		return true;
+                 	}
+                 return false;
+         }
+          catch(Exception e)
+         { return false; }
+         }
+function boolean compareTripleSection(XOMContainerBean xcb,int compareType, String ruleid, String section, String field, String parameter, String val2, String position1, String position2)
+    {
+
+            ArrayList errorListIndex = new ArrayList();
+    	    ArrayList errorListIndexTemp1 = new ArrayList();
+    	    ArrayList errorListIndexTemp2 = new ArrayList();
+    	    int CT=compareType;
+    	    String param=parameter;
+    	    boolean finalFlag = false;
+    		String section1=null;
+    		String section2=null;
+			String section3=null;
+    		String section12=null;
+			String section13=null;
+            ArrayList splitedsection=new ArrayList();
+            int index = section.indexOf("[i]");
+            int startpos=0;
+            while (index >= 0) {
+			if(startpos==0)
+            {
+              splitedsection.add(section.substring(startpos,index));
+
+            }
+            else
+            {
+              splitedsection.add(section.substring(startpos+4,index));
+
+             }
+             startpos=index;
+              index = section.indexOf("[i]", index + 1);
+            }
+	    section1=(String)splitedsection.get(0);
+            section2=(String)splitedsection.get(1);
+            section3=(String)splitedsection.get(2);
+    		XOMAccessBean accessBean1 = xcb.xpath(section1);
+    		XOMContainerBean[] arr1;
+    		arr1 = accessBean1.nodeSet();
+    		XOMAccessBean accessBean2 =null;
+			XOMAccessBean accessBean3 =null;
+			for (int k = 0; k < arr1.length; k++)
+    		{
+
+			    section12=section1 + "[" + (k + 1) + "]/" + section2;
+    			accessBean2 = xcb.xpath(section12);
+    			XOMContainerBean[] arr2;
+    			arr2 = accessBean2.nodeSet();
+    		for (int i = 0; i < arr2.length; i++)
+    		{
+
+    			section13=section12 + "[" + (i + 1) + "]/" + section3;
+    			accessBean3 = xcb.xpath(section13);
+    			XOMContainerBean[] arr3;
+    			arr3 = accessBean3.nodeSet();
+    			for(int j = 0; j < arr3.length; j++)
+    			{
+    				boolean flag = false;
+    				XOMContainerBean xBean = arr3[j];
+
+    				String xpath = section13 + "[" + (j + 1) + "]/" + field;
+    				String content = xBean.xpath(xpath).stringValue();
+    				flag=MultiRules(CT,xpath,content,param,val2,position1,position2);
+    				if (flag)
+    				{
+    					ArrayList temp=new ArrayList();
+						temp.add(k+1);
+    					temp.add(i+1);
+    					temp.add(j+1);
+    					errorListIndex.add(temp);
+    					finalFlag = true;
+    				}
+    			}
+				
+    			accessBean3 =null;
+			}
+			accessBean2 =null;
+			}
+			errorListIndexTemp1=(ArrayList)((xcb.getErrorListIndexMap()).get(ruleid));
+
+	errorListIndexTemp2=(ArrayList)errorListIndex.clone();
+
+	if(errorListIndexTemp1!=null)
+	{
+		if(errorListIndexTemp1.isEmpty())
+		{
+			errorListIndex=(ArrayList)errorListIndexTemp1.clone();
+		}
+		else
+		{
+			ArrayList errorListIndexTemp3 = new ArrayList();
+			for(int i = 0;i < errorListIndexTemp1.size();i++){
+				for(int j = 0;j < errorListIndexTemp2.size();j++){
+					if(errorListIndexTemp1.get(i).equals(errorListIndexTemp2.get(j))){
+						errorListIndexTemp3.add(errorListIndexTemp1.get(i));
+
+					}
+				}
+					errorListIndex=(ArrayList)errorListIndexTemp3.clone();
+			}
+		}
+	}
+
+	if (finalFlag)
+	{
+		(xcb.getErrorListIndexMap()).put(ruleid,errorListIndex);
+	}
+	return finalFlag;
+ }
+ function void logMultipleErrorTriplrSection(XOMContainerBean xcb,String ruleid, String section, String field, String errorCode, String errorMessage)
+    {
+      
+	ArrayList errorListIndex = (ArrayList) (xcb.getErrorListIndexMap()).get(ruleid);
+	if (errorListIndex != null && errorListIndex.size() > 0)
+	{
+	    for (int i = 0; i < errorListIndex.size(); i++)
+	    {
+
+	    	ArrayList temp=new ArrayList();
+	    	temp=(ArrayList)errorListIndex.get(i);
+    		String section1=null;
+    		String section2=null;
+			String section3=null;
+    		String section12=null;
+			String section13=null;
+            ArrayList splitedsection=new ArrayList();
+            int index = section.indexOf("[i]");
+            int startpos=0;
+            while (index >= 0) {
+			if(startpos==0)
+            {
+              splitedsection.add(section.substring(startpos,index));
+
+            }
+            else
+            {
+              splitedsection.add(section.substring(startpos+4,index));
+
+             }
+             startpos=index;
+             index = section.indexOf("[i]", index + 1);
+            }
+			section1=(String)splitedsection.get(0);
+            section2=(String)splitedsection.get(1);
+            section3=(String)splitedsection.get(2);
+			section12=section1 + "[" + temp.get(0) + "]/" + section2;
+		    section13 = section12 + "[" + temp.get(1) + "]/" + section3;
+			String xpath = section13 + "[" + temp.get(2) + "]/" + field;
+			xcb.logError(errorCode, errorMessage, xpath);
+
+	    }
+	}
+	(xcb.getErrorListIndexMap()).remove(ruleid);
+   }
+function boolean compareOcc(XOMContainerBean xcb,int compareType, String ruleid, String section, String targetsection, String val2, String position1, String position2)
+    {
+       
+
+    	ArrayList errorListIndex = new ArrayList();
+    	ArrayList errorListIndexTemp1 = new ArrayList();
+    	ArrayList errorListIndexTemp2 = new ArrayList();
+    	int CT=compareType;
+    	String param=null;
+    	boolean finalFlag = false;
+		int temp=Integer.MIN_VALUE;
+		int count=0;
+    	if(section.contains("[i]/"))
+    	{
+
+    		String section1=null;
+    		String section2=null;
+    		String section12=null;
+    		int pos1,pos2,targetpos;
+    		pos1=section.indexOf("[i]/");
+    		pos2=section.lastIndexOf("[i]");
+    		section1=section.substring(0,pos1);
+    		section2=section.substring(pos1+4,pos2);
+			targetpos=targetsection.indexOf("[i]");
+			targetsection=targetsection.substring(0,targetpos);
+			XOMAccessBean tragetaccessBean1 = xcb.xpath(targetsection);
+			XOMContainerBean[] targetarr1;
+    		targetarr1 = tragetaccessBean1.nodeSet();
+			param=String.valueOf(targetarr1.length);
+    		XOMAccessBean accessBean1 = xcb.xpath(section1);
+    		XOMContainerBean[] arr1;
+    		arr1 = accessBean1.nodeSet();
+    		XOMAccessBean accessBean2 =null;
+    		for (int i = 0; i < arr1.length; i++)
+    		{
+    		    boolean flag = false;
+    			section12=section1 + "[" + (i + 1) + "]/" + section2;
+    			accessBean2 = xcb.xpath(section12);
+    			XOMContainerBean[] arr2;
+    			arr2 = accessBean2.nodeSet();
+    			String xpath=null;
+    			for(int j = 0; j < arr2.length; j++)
+    			{
+    				
+    				XOMContainerBean xBean = arr2[j];
+
+    			    xpath = section12 + "[" + (j + 1) + "]";
+    				int content = xBean.xpath(xpath).integerValue();
+					if(content>temp)
+					{
+					temp=content;
+					count=j;
+					}
+
+    				
+    			}
+    			String maxvalue=String.valueOf(temp);
+				flag=MultiRules(CT,xpath,maxvalue,param,val2,position1,position2);
+
+
+    				if (flag)
+    				{
+    					ArrayList temparr=new ArrayList();
+    					temparr.add(i+1);
+    					temparr.add(count+1);
+    					errorListIndex.add(temparr);
+    					finalFlag = true;
+    				}
+				temp=Integer.MIN_VALUE;
+				count=0;
+				xpath=null;
+    			accessBean2 =null;
+			}
+		}
+
+
+
+	errorListIndexTemp1=(ArrayList)((xcb.getErrorListIndexMap()).get(ruleid));
+
+	errorListIndexTemp2=(ArrayList)errorListIndex.clone();
+
+	if(errorListIndexTemp1!=null)
+	{
+		if(errorListIndexTemp1.isEmpty())
+		{
+			errorListIndex=(ArrayList)errorListIndexTemp1.clone();
+		}
+		else
+		{
+			ArrayList errorListIndexTemp3 = new ArrayList();
+			for(int i = 0;i < errorListIndexTemp1.size();i++){
+				for(int j = 0;j < errorListIndexTemp2.size();j++){
+					if(errorListIndexTemp1.get(i).equals(errorListIndexTemp2.get(j))){
+						errorListIndexTemp3.add(errorListIndexTemp1.get(i));
+
+					}
+				}
+					errorListIndex=(ArrayList)errorListIndexTemp3.clone();
+			}
+		}
+	}
+
+	if (finalFlag)
+	{
+		(xcb.getErrorListIndexMap()).put(ruleid,errorListIndex);
+	}
+	return finalFlag;
+    }
+function void logMultipleErrorOcc(XOMContainerBean xcb,String ruleid, String section, String errorCode, String errorMessage)
+    {
+	ArrayList errorListIndex = (ArrayList) (xcb.getErrorListIndexMap()).get(ruleid);
+	if (errorListIndex != null && errorListIndex.size() > 0)
+	{
+	    for (int i = 0; i < errorListIndex.size(); i++)
+	    {
+	    if(section.contains("[i]/"))
+	    {
+	    	ArrayList temp=new ArrayList();
+	    	temp=(ArrayList)errorListIndex.get(i);
+	    	String section1=null;
+			String section2=null;
+			String section12=null;
+			int pos1,pos2;
+			pos1=section.indexOf("[i]/");
+			pos2=section.lastIndexOf("[i]");
+			section1=section.substring(0,pos1);
+			section2=section.substring(pos1+4,pos2);
+			section12=section1 + "[" + temp.get(0) + "]/" + section2;
+			String xpath = section12 + "[" + temp.get(1) + "]";
+			xcb.logError(errorCode, errorMessage, xpath);
+	    }
+	    else
+	    {
+
+	    	int pos1;
+	    	String section1=null;
+	    	pos1=section.indexOf("[i]");
+			section1=section.substring(0,pos1);
+			String xpath = section1 + "[" + errorListIndex.get(i) + "]";
+	    	xcb.logError(errorCode, errorMessage, xpath);
+	    }
+	    }
+	}
+	(xcb.getErrorListIndexMap()).remove(ruleid);
+   }
+ function boolean isNotEqualOcc(int section, int count)
+        {
+        		try{
+                if(section != count )
+                	{
+                		return true;
+                	}
+                return false;
+        }
+         catch(Exception e)
+        { return false; }
+        }
+function boolean moExists(XOMContainerBean xcb, String ruleid, String section, String field)
+    {
+	return compare(xcb, 5, ruleid, section, field, null,null,null,null);
+    }
+function boolean multiEquals(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 1, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean PositionValueEqual(XOMContainerBean xcb, String ruleid, String section, String field, String pos,String valueToCompare)
+    {
+	return compare(xcb,29, ruleid, section, field,  valueToCompare, null, pos, null);
+    }
+function boolean isGreaterThanFloatValue(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 35, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean isNotGreaterThanFloatValue(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 36, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean isMultiSectionContainMultiField(XOMContainerBean xcb,String ruleid, String field, String section, String field2,  String sectionfield2)
+    {
+	return multiCompare(xcb, ruleid, field, section, field2, sectionfield2, "equal");
+    }
+function boolean isMultiSectionGreaterMultiField(XOMContainerBean xcb,String ruleid, String field, String section, String field2,  String sectionfield2)
+    {
+	return multiCompare(xcb, ruleid, field, section, field2, sectionfield2, "greater");
+    }
+function boolean multiNotEquals(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 3, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean isNotGreaterThanTripleSection(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+    return compareTripleSection(xcb, 36, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean isGreaterThanOccSection(XOMContainerBean xcb, String ruleid, String section, String section2)
+    {
+    return compareOcc(xcb, 17, ruleid, section, section2,null,null,null);
+    }
+function boolean isNotEqualOccSection(XOMContainerBean xcb, String ruleid, String section, String section2)
+    {
+    return compareOcc(xcb, 37, ruleid, section, section2,null,null,null);
+    }
+function boolean moNotExists(XOMContainerBean xcb, String ruleid, String section, String field)
+    {
+	return compare(xcb, 4, ruleid, section, field, null,null,null,null);
+    }
+function boolean multiNotGreaterThanOrEqualToTwice(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 38, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean containsfun(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 19, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean nocontainsfun(XOMContainerBean xcb, String ruleid, String section, String field, String valueToCompare)
+    {
+	return compare(xcb, 39, ruleid, section, field, valueToCompare,null,null,null);
+    }
+function boolean containsLastCharacterOfField(XOMContainerBean xcb, String ruleid, String section, String field, char comparechar)
+    {
+    String valueToCompare=""+comparechar;
+	return compare(xcb, 40, ruleid, section, field, valueToCompare,null,null,null);
+    }
+
+//@@@@@@@@ Business Rule Start @@@@@@@@@@@@@@@@@@@//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

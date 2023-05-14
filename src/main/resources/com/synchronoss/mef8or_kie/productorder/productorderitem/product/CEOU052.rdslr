@@ -1,0 +1,45 @@
+package com.synchronoss.mef8or_kie.productorder.productorderitem.product;
+import java.util.*;
+import com.synchronoss.ruleserver.core.xpath.XOMContainerBean;
+import com.synchronoss.ruleserver.core.xpath.XOMAccessBean;
+import com.synchronoss.brms.dresclasses.xpath.XPathProcessor;
+import com.synchronoss.brms.dresclasses.xpath.Occurence;
+import com.synchronoss.brms.dresclasses.Populated;
+import com.synchronoss.brms.dresclasses.Equals;
+import com.synchronoss.brms.dresclasses.Contains;
+import com.synchronoss.brms.dresclasses.DatatypeCheck;
+import com.synchronoss.brms.dresclasses.SpaceCheck;
+import com.synchronoss.brms.dresclasses.LengthCheck;
+import com.synchronoss.brms.dresclasses.Position;
+import com.synchronoss.brms.dresclasses.TNFormat;
+import com.synchronoss.brms.dresclasses.RangeOfValues;
+import com.synchronoss.brms.dresclasses.DateCheck;
+import com.synchronoss.brms.dresclasses.Prohibited;
+import com.synchronoss.brms.dresclasses.DateFormatCheck;
+import com.synchronoss.brms.dresclasses.Required;
+import com.synchronoss.brms.dresclasses.CapitalLetterCheck;
+import com.synchronoss.brms.dresclasses.TimeFormatCheck;
+import com.synchronoss.brms.dresclasses.SpecialFormat;
+import com.synchronoss.brms.dresclasses.dao.SupplementOrderCheck;
+rule "CEOU052" dialect "mvel" ruleflow-group "CARRIER_ETHERNET"
+
+	 when
+       
+        xcb object
+		Evaluate
+Start Brace
+the "//productConfiguration/tokenShare" is populated
+		  
+AND
+ the "//productConfiguration/tokenShare" equals "DISABLED"
+		  
+AND
+ Rule "CEOU052" multiple times "envelopeId" in "//productConfiguration/ingressBandwidthProfile[i]" is populated
+		  
+AND
+ Rule "CEOU052" multiple times "envelopeId" in "//productConfiguration/egressBandwidthProfile[i]" is populated
+End Brace
+
+	then
+		the error code "MEFCEOU0006" with message "If Operator Token Share = DISABLED, both Ingress Envelope ID and Egress Envelope ID cannot be populated" for the field "//productOrder/productOrderItem[2]/product/productConfiguration/tokenShare"
+end

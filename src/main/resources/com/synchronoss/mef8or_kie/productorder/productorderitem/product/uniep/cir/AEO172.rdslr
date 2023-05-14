@@ -1,0 +1,39 @@
+package com.synchronoss.mef8or_kie.productorder.productorderitem.product.uniep.cir;
+import java.util.*;
+import com.synchronoss.ruleserver.core.xpath.XOMContainerBean;
+import com.synchronoss.ruleserver.core.xpath.XOMAccessBean;
+import com.synchronoss.brms.dresclasses.xpath.XPathProcessor;
+import com.synchronoss.brms.dresclasses.xpath.Occurence;
+import com.synchronoss.brms.dresclasses.Populated;
+import com.synchronoss.brms.dresclasses.Equals;
+import com.synchronoss.brms.dresclasses.Contains;
+import com.synchronoss.brms.dresclasses.DatatypeCheck;
+import com.synchronoss.brms.dresclasses.SpaceCheck;
+import com.synchronoss.brms.dresclasses.LengthCheck;
+import com.synchronoss.brms.dresclasses.Position;
+import com.synchronoss.brms.dresclasses.TNFormat;
+import com.synchronoss.brms.dresclasses.RangeOfValues;
+import com.synchronoss.brms.dresclasses.DateCheck;
+import com.synchronoss.brms.dresclasses.Prohibited;
+import com.synchronoss.brms.dresclasses.DateFormatCheck;
+import com.synchronoss.brms.dresclasses.Required;
+import com.synchronoss.brms.dresclasses.CapitalLetterCheck;
+import com.synchronoss.brms.dresclasses.TimeFormatCheck;
+import com.synchronoss.brms.dresclasses.SpecialFormat;
+import com.synchronoss.brms.dresclasses.dao.SupplementOrderCheck;
+rule "AEO172" dialect "mvel" ruleflow-group "ACCESS_ELINE"
+
+	 when
+       
+        xcb object
+		Evaluate
+Start Brace
+Rule "AEO172" multiple times "cir/irValue" in "//uniEp/ingressBandwidthProfilePerClassOfServiceName[i]/bwpFlow[i]" is populated
+		  
+AND
+ the "//uniEp/egressBwpPerEgressEquivalenceClassName" is populated
+End Brace
+
+	then
+		the rule "AEO172" with error code "MEFAEO0021" with message "The egressBwpPerEgressEquivalenceClassName section is prohibited if Information Rate (IR) Value is populated" for the field "cir/irValue" of section "//productOrder/productOrderItem/product/productConfiguration/uniEp/ingressBandwidthProfilePerClassOfServiceName[i]/bwpFlow[i]"
+end

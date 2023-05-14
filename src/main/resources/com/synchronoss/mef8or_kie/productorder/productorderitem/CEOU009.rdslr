@@ -1,0 +1,42 @@
+package com.synchronoss.mef8or_kie.productorder.productorderitem;
+import java.util.*;
+import com.synchronoss.ruleserver.core.xpath.XOMContainerBean;
+import com.synchronoss.ruleserver.core.xpath.XOMAccessBean;
+import com.synchronoss.brms.dresclasses.xpath.XPathProcessor;
+import com.synchronoss.brms.dresclasses.xpath.Occurence;
+import com.synchronoss.brms.dresclasses.Populated;
+import com.synchronoss.brms.dresclasses.Equals;
+import com.synchronoss.brms.dresclasses.Contains;
+import com.synchronoss.brms.dresclasses.DatatypeCheck;
+import com.synchronoss.brms.dresclasses.SpaceCheck;
+import com.synchronoss.brms.dresclasses.LengthCheck;
+import com.synchronoss.brms.dresclasses.Position;
+import com.synchronoss.brms.dresclasses.TNFormat;
+import com.synchronoss.brms.dresclasses.RangeOfValues;
+import com.synchronoss.brms.dresclasses.DateCheck;
+import com.synchronoss.brms.dresclasses.Prohibited;
+import com.synchronoss.brms.dresclasses.DateFormatCheck;
+import com.synchronoss.brms.dresclasses.Required;
+import com.synchronoss.brms.dresclasses.CapitalLetterCheck;
+import com.synchronoss.brms.dresclasses.TimeFormatCheck;
+import com.synchronoss.brms.dresclasses.SpecialFormat;
+import com.synchronoss.brms.dresclasses.dao.SupplementOrderCheck;
+rule "CEOU009" dialect "mvel" ruleflow-group "CARRIER_ETHERNET"
+
+	 when
+       
+        xcb object
+		Evaluate
+Start Brace
+Rule "CEOU009" multiple times "start" in "//productConfiguration/aggregationLinkMap[i]/conversationIDs[i]" is populated
+		
+AND
+ Rule "CEOU009" multiple times "end" in "//productConfiguration/aggregationLinkMap[i]/conversationIDs[i]" is populated
+		
+AND
+ Rule "CEOU009" multiple times "start" in "//productConfiguration/aggregationLinkMap[i]/conversationIDs[i]" greater "end" in "//productConfiguration/aggregationLinkMap[i]/conversationIDs[i]"
+End Brace
+
+	then
+		the rule "CEOU009" with error code "MEFCEOU0002" with message "End Conversation ID must be greater than or equal to Start Conversation ID" for the field "end" of section "//productOrder/productOrderItem[2]/product/productConfiguration/aggregationLinkMap[i]/conversationIDs[i]"
+end
